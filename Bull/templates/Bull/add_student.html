@@ -1,0 +1,54 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container py-4">
+  <h2 class="mb-4 text-primary">Ajouter un élève</h2>
+  <div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="mb-3">
+          <label class="form-label">Matricule</label>
+          {{ form.matricule }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Nom</label>
+          {{ form.last_name }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Prénom</label>
+          {{ form.first_name }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Genre</label>
+          {{ form.gender }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Date de naissance</label>
+          {{ form.birth_date }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Lieu de naissance</label>
+          {{ form.birth_place }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Photo</label>
+          {{ form.photo }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Classe</label>
+          {{ form.classroom }}
+        </div>
+        <div class="form-check mb-3">
+          {{ form.repeater }}
+          <label class="form-check-label" for="id_repeater">Redouble</label>
+        </div>
+        <button type="submit" class="btn btn-success w-100">Ajouter</button>
+        <a href="/students/" class="btn btn-secondary w-100 mt-2">Annuler</a>
+      </form>
+    </div>
+  </div>
+</div>
+ </div>
+{% endblock %}

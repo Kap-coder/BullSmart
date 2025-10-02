@@ -1,0 +1,15 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<h2>Modifier le trimestre</h2>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="name" class="form-label">Nom du trimestre</label>
+        <input type="text" class="form-control" id="name" name="name" value="{{ term.name }}" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
+    <a href="{% url 'parameters' %}" class="btn btn-secondary">Annuler</a>
+</form>
+</div>
+{% endblock %}

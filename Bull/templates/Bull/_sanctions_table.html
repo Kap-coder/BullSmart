@@ -1,0 +1,14 @@
+<tbody>
+  {% for sanction in sanctions %}
+  <tr>
+    <td>{{ sanction.texte }}</td>
+    <td>{{ sanction.min_heures_absence }}</td>
+    <td>
+      <button class="btn btn-sm btn-primary" onclick="editSanction({{ sanction.id }}, '{{ sanction.texte|escapejs }}', {{ sanction.min_heures_absence }})">Modifier</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteSanction({{ sanction.id }})">Supprimer</button>
+    </td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="3">Aucune sanction enregistrée.</td></tr>
+  {% endfor %}
+</tbody>

@@ -1,0 +1,221 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<h2>Notes pour la classe : {{ cs.classroom.name }} / Matière : {{ cs.subject.name }}</h2>
+{% if message %}
+  <div class="alert alert-success">{{ message }}</div>
+{% endif %}
+{% if error_message %}
+  <div class="alert alert-danger">{{ error_message }}</div>
+{% endif %}
+<form method="get" action="{% url 'generate_grades' cs.id %}">
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <label for="schoolyear">Année scolaire</label>
+      <select name="schoolyear" id="schoolyear" class="form-control">
+        <option value="">-- Sélectionner --</option>
+        {% for sy in schoolyears %}
+          <option value="{{ sy.id }}" {% if selected_schoolyear == sy.id|stringformat:'s' %}selected{% endif %}>{{ sy.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label for="term">Trimestre</label>
+      <select name="term" id="term" class="form-control">
+        <option value="">-- Sélectionner --</option>
+        {% for t in terms %}
+          <option value="{{ t.id }}" {% if selected_term == t.id|stringformat:'s' %}selected{% endif %}>{{ t.name }} ({{ t.school_year.name }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label for="sequence">Séquence</label>
+      <select name="sequence" id="sequence" class="form-control">
+        <option value="">-- Sélectionner --</option>
+        {% for seq in sequences %}
+          <option value="{{ seq.id }}" {% if selected_sequence == seq.id|stringformat:'s' %}selected{% endif %}>{{ seq.name }} ({{ seq.term.name }})</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-warning">Générer la liste d'élèves</button>
+  <button type="submit" name="action" value="generate_and_fill" class="btn btn-success">Générer et remplir (ouvrir saisie)</button>
+</form>
+
+{% if selected_schoolyear_obj and selected_term_obj and selected_sequence_obj and grades %}
+  <hr>
+  <h4>Notes pour : Séquence {{ selected_sequence_obj.name }} — Trimestre {{ selected_term_obj.name }} — Année {{ selected_schoolyear_obj.name }}</h4>
+  <form id="grades-form" method="post" action="{% url 'save_grades' cs.id %}">
+    {% csrf_token %}
+    <input type="hidden" name="sequence" value="{{ selected_sequence }}" />
+    <input type="hidden" name="term" value="{{ selected_term }}" />
+    <table class="table table-bordered" id="grades-table">
+      <thead>
+        <tr>
+          <th>Élève</th>
+          <th>Note</th>
+          <th>Coefficient</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if grades %}
+          {% for grade in grades %}
+            <tr data-grade-id="{{ grade.id }}" class="grade-row {% if grade.value == 0 %}table-danger{% endif %}">
+              <td>{{ grade.student.last_name }} {{ grade.student.first_name }}</td>
+              <td>
+                    <span class="value-span">{% if grade.value != None %}{{ grade.value }}{% else %}0{% endif %}</span>
+                    {% if grade.status == 'locked' %}
+                      <span class="badge badge-danger ml-2">🔒 Verrouillé</span>
+                    {% elif grade.status == 'validated' %}
+                      {% if is_admin_or_secretary %}
+                        <input type="number" step="0.01" min="0" max="20" name="grade_{{ grade.id }}" value="{% if grade.value != None %}{{ grade.value }}{% else %}0{% endif %}" class="form-control value-input d-none" />
+                      {% else %}
+                        <span class="badge badge-success ml-2">Validé
+                          {% if grade.validated_by %}<br><small class="text-muted">par {{ grade.validated_by.get_full_name|default:grade.validated_by.username }}</small>{% endif %}
+                        </span>
+                      {% endif %}
+                    {% else %}
+                      <input type="number" step="0.01" min="0" max="20" name="grade_{{ grade.id }}" value="{% if grade.value != None %}{{ grade.value }}{% else %}0{% endif %}" class="form-control value-input d-none" />
+                    {% endif %}
+                  </td>
+                  <td>{{ grade.class_subject.coefficient }}</td>
+                  <td>
+                    {% if grade.status == 'locked' %}
+                      <span class="text-muted">Verrouillé</span>
+                    {% else %}
+                      {{ grade.status }}
+                    {% endif %}
+                  </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          {# No grades yet: show students and create placeholder inputs (create will be handled by generate_grades or bind commands) #}
+          {% for student in students %}
+            <tr class="grade-row table-danger">
+              <td>{{ student.last_name }} {{ student.first_name }}</td>
+              <td>
+                <span class="value-span">0</span>
+                <input type="number" step="0.01" min="0" max="20" name="new_{{ student.id }}" value="0" class="form-control value-input d-none" />
+              </td>
+              <td>{{ cs.coefficient }}</td>
+              <td>non généré</td>
+            </tr>
+          {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+
+    <div id="edit-controls" class="mb-3">
+      <button type="button" id="edit-btn" class="btn btn-primary">Modifier</button>
+      <button type="submit" id="save-btn" class="btn btn-success d-none">Enregistrer</button>
+      <button type="button" id="cancel-btn" class="btn btn-secondary d-none">Annuler</button>
+  <a id="download-pdf" class="btn btn-outline-secondary ml-2" href="#" data-no-ajax>Télécharger PDF</a>
+      {% if can_manage %}
+        <a id="validate-btn" class="btn btn-warning ml-2" href="#" data-no-ajax>Valider toutes (lock)</a>
+      {% endif %}
+    </div>
+  </form>
+  <script>
+    (function(){
+      const editBtn = document.getElementById('edit-btn');
+      const saveBtn = document.getElementById('save-btn');
+      const cancelBtn = document.getElementById('cancel-btn');
+      const inputs = document.querySelectorAll('.value-input');
+      const spans = document.querySelectorAll('.value-span');
+      const rows = document.querySelectorAll('.grade-row');
+      let originalValues = [];
+      function enterEdit(){
+        originalValues = [];
+        inputs.forEach((inp, idx)=>{ originalValues[idx]=inp.value; inp.classList.remove('d-none'); });
+        spans.forEach(s=>s.classList.add('d-none'));
+        editBtn.classList.add('d-none');
+        saveBtn.classList.remove('d-none');
+        cancelBtn.classList.remove('d-none');
+      }
+      function exitEdit(cancel=false){
+        inputs.forEach((inp, idx)=>{ inp.classList.add('d-none'); if(cancel) inp.value = originalValues[idx]; });
+        spans.forEach((s, idx)=>{ s.classList.remove('d-none'); if(cancel) s.textContent = originalValues[idx]; else {
+          // update span to the input values
+          const val = inputs[idx].value; s.textContent = val; }
+        });
+        editBtn.classList.remove('d-none');
+        saveBtn.classList.add('d-none');
+        cancelBtn.classList.add('d-none');
+        // update row colouring
+        rows.forEach((r, idx)=>{
+          const v = parseFloat((inputs[idx] && !inputs[idx].classList.contains('d-none'))? inputs[idx].value : (spans[idx] ? spans[idx].textContent : '0')) || 0;
+          if(v === 0){ r.classList.add('table-danger'); } else { r.classList.remove('table-danger'); }
+        });
+      }
+      if(editBtn){
+        const allInputsOnPage = document.querySelectorAll('.value-input');
+        if(!allInputsOnPage || allInputsOnPage.length === 0){
+          // no editable inputs -> disable edit button
+          editBtn.disabled = true;
+          editBtn.title = 'Toutes les notes sont verrouillées - modification impossible';
+        }
+        editBtn.addEventListener('click', function(e){
+          const allInputs = document.querySelectorAll('.value-input');
+          if(!allInputs || allInputs.length === 0){
+            // show user-friendly alert
+            alert('Toutes les notes sont verrouillées — modification impossible.');
+            return;
+          }
+          enterEdit();
+        });
+      }
+      cancelBtn && cancelBtn.addEventListener('click', ()=>exitEdit(true));
+      // on form submit leave edit mode (values already posted)
+      document.getElementById('grades-form').addEventListener('submit', function(){
+        // ensure inputs visible so they are submitted
+        inputs.forEach(i=>i.classList.remove('d-none'));
+      });
+      // auto open edit mode if server asked
+      try{
+        const auto = {{ auto_open_edit|yesno:"true,false" }};
+        if(auto){ enterEdit(); }
+      }catch(e){}
+        // wire download button
+        try{
+          const downloadBtn = document.getElementById('download-pdf');
+          if(downloadBtn){
+            const qs = new URLSearchParams();
+            if('{{ selected_schoolyear }}') qs.set('schoolyear','{{ selected_schoolyear }}');
+            if('{{ selected_term }}') qs.set('term','{{ selected_term }}');
+            if('{{ selected_sequence }}') qs.set('sequence','{{ selected_sequence }}');
+            downloadBtn.href = `{% url 'download_grades_pdf' cs.id %}?` + qs.toString();
+          }
+        }catch(e){}
+        // validate button behaviour
+        try{
+          const validateBtn = document.getElementById('validate-btn');
+          if(validateBtn){
+            validateBtn.addEventListener('click', function(){
+              // ensure there is no input with value 0
+              const spans = document.querySelectorAll('.value-span');
+              for(let s of spans){
+                const v = parseFloat(s.textContent) || 0;
+                if(v === 0){ alert('Impossible de valider: au moins une note vaut 0'); return; }
+              }
+              // redirect to validate endpoint with current selection
+              const qs = new URLSearchParams();
+              if('{{ selected_schoolyear }}') qs.set('schoolyear','{{ selected_schoolyear }}');
+              if('{{ selected_term }}') qs.set('term','{{ selected_term }}');
+              if('{{ selected_sequence }}') qs.set('sequence','{{ selected_sequence }}');
+              window.location.href = `{% url 'validate_grades' cs.id %}?` + qs.toString();
+            });
+          }
+        }catch(e){}
+    })();
+  </script>
+{% elif selected_schoolyear and not selected_term %}
+  <div class="alert alert-info">Année sélectionnée — choisissez le trimestre et la séquence pour afficher la liste.</div>
+{% elif selected_schoolyear and not selected_sequence %}
+  <div class="alert alert-info">Année sélectionnée — choisissez le trimestre et la séquence pour afficher la liste.</div>
+{% else %}
+  <div class="alert alert-secondary">Aucune année sélectionnée. Sélectionnez l'année, le trimestre et la séquence puis cliquez sur Générer la liste d'élèves.</div>
+{% endif %}
+<a href="{% url 'subject_class_cards' cs.subject.id %}" class="btn btn-secondary mt-3">Retour aux classes</a>
+</div>
+{% endblock %}

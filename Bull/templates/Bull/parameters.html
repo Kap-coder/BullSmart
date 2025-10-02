@@ -1,0 +1,292 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<h2>Paramètres scolaires</h2>
+<a href="{% url 'edit_html_canvas' %}" class="btn btn-primary mb-3">Éditer le canevas bulletin (HTML)</a>
+
+<div class="row">
+  <div class="col-md-6">
+    <h4>Années scolaires</h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr><th>Nom</th><th>Active</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for sy in schoolyears %}
+        <tr>
+          <td>{{ sy.name }}</td>
+          <td>{% if sy.is_active %}<span class="badge badge-success">Actuelle</span>{% endif %}</td>
+          <td>
+            <form method="post" action="{% url 'set_active_schoolyear' sy.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-info">Activer</button>
+            </form>
+            <a href="{% url 'edit_schoolyear' sy.id %}" class="btn btn-sm btn-warning">Modifier</a>
+            <form method="post" action="{% url 'delete_schoolyear' sy.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette année ?')">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="{% url 'add_schoolyear' %}" class="btn btn-primary">Créer une nouvelle année</a>
+  </div>
+  <div class="col-md-6">
+    <h4>Trimestres et Séquences</h4>
+    {% for sy in schoolyears %}
+      <h5>{{ sy.name }}</h5>
+      {% for term in sy.terms.all %}
+        <div class="card mb-2">
+          <div class="card-body">
+            <strong>Trimestre : {{ term.name }}</strong>
+            <a href="{% url 'edit_term' term.id %}" class="btn btn-sm btn-warning">Modifier</a>
+            <form method="post" action="{% url 'delete_term' term.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer ce trimestre ?')">Supprimer</button>
+            </form>
+            <a href="{% url 'add_sequence' %}?term={{ term.id }}" class="btn btn-sm btn-primary">Ajouter séquence</a>
+            <ul>
+              {% for seq in term.sequences.all %}
+                <li>
+                  <span class="badge {% if seq.active %}bg-primary text-light{% else %}bg-secondary text-dark{% endif %}">
+                    Séquence : {{ seq.name }} {% if seq.active %}(Active){% endif %}
+                  </span>
+                  <a href="{% url 'edit_sequence' seq.id %}" class="btn btn-sm btn-warning">Modifier</a>
+                  <form method="post" action="{% url 'delete_sequence' seq.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette séquence ?')">Supprimer</button>
+                  </form>
+                  {% if not seq.active %}
+                  <form method="post" action="{% url 'set_active_sequence' seq.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-info">Activer</button>
+                  </form>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endfor %}
+      <a href="{% url 'add_term' %}?schoolyear={{ sy.id }}" class="btn btn-primary mb-3">Ajouter trimestre</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-md-12">
+    <h4>Canevas bulletins</h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr><th>Année scolaire</th><th>Canevas actif</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for sy in schoolyears %}
+        <tr>
+          <td>{{ sy.name }}</td>
+          <td>
+            {% with found_active=False %}
+              {% for t in sy.bulletin_templates.all %}
+                {% if t.active and not found_active %}
+                  {{ t.name }}
+                  {% if t.header_docx %}<a href="{{ t.header_docx.url }}" target="_blank">Entête</a>{% endif %}
+                  {% if t.footer_docx %} | <a href="{{ t.footer_docx.url }}" target="_blank">Pied</a>{% endif %}
+                  {% with found_active=True %}{% endwith %}
+                {% endif %}
+              {% endfor %}
+              {% if not found_active %}
+                <span class="text-muted">Aucun canevas actif</span>
+              {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            <a href="{% url 'bulletin_template_list' %}" class="btn btn-sm btn-primary">Gérer les canevas</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="{% url 'bulletin_template_create' %}" class="btn btn-success">Ajouter un canevas</a>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-md-12">
+    <h4>Gestion des sanctions</h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Sanction</th>
+          <th>Min heures d'absence</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sanction in sanctions %}
+        <tr>
+          <td>{{ sanction.texte }}</td>
+          <td>{{ sanction.min_heures_absence }}</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="editSanction({{ sanction.id }}, '{{ sanction.texte|escapejs }}', {{ sanction.min_heures_absence }})">Modifier</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteSanction({{ sanction.id }})">Supprimer</button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">Aucune sanction enregistrée.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <hr>
+    <h5>Ajouter une sanction</h5>
+    <form id="addSanctionForm" method="post" action="{% url 'add_sanction' %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="sanctionTexte">Sanction</label>
+        <input type="text" class="form-control" id="sanctionTexte" name="texte" required>
+      </div>
+      <div class="form-group">
+        <label for="sanctionHeures">Min heures d'absence</label>
+        <input type="number" class="form-control" id="sanctionHeures" name="min_heures_absence" required>
+      </div>
+      <button type="submit" class="btn btn-success">Ajouter</button>
+    </form>
+    <!-- Modal for editing sanction -->
+    <div class="modal fade" id="editSanctionModal" tabindex="-1" role="dialog" aria-labelledby="editSanctionModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <form id="editSanctionForm" method="post" action="{% url 'edit_sanction' %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title" id="editSanctionModalLabel">Modifier la sanction</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="editSanctionId" name="id">
+              <div class="form-group">
+                <label for="editSanctionTexte">Sanction</label>
+                <input type="text" class="form-control" id="editSanctionTexte" name="texte" required>
+              </div>
+              <div class="form-group">
+                <label for="editSanctionHeures">Min heures d'absence</label>
+                <input type="number" class="form-control" id="editSanctionHeures" name="min_heures_absence" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+              <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script>
+    // Pop-up toast/alert
+    function showAlert(message, type='success') {
+  let alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${type} alert-dismissible fade show smartbull-toast`;
+  alertDiv.role = 'alert';
+  alertDiv.innerHTML = message + '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+  document.body.appendChild(alertDiv);
+  alertDiv.querySelector('.close').onclick = function() { alertDiv.classList.remove('show'); setTimeout(() => alertDiv.remove(), 300); };
+  setTimeout(() => { alertDiv.classList.remove('show'); setTimeout(() => alertDiv.remove(), 300); }, 3000);
+    }
+
+    // Recharge le tableau des sanctions en AJAX
+    function reloadSanctionsTable() {
+      fetch('{% url "sanctions_table" %}')
+        .then(r => r.json())
+        .then(data => {
+          let tbody = document.querySelector('table.table-bordered tbody');
+          tbody.innerHTML = data.html;
+        });
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .smartbull-toast {
+        position: fixed;
+        top: 30px;
+        right: 30px;
+        min-width: 250px;
+        max-width: 400px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        z-index: 3000;
+        opacity: 0.98;
+        font-size: 1.1em;
+      }
+      .smartbull-toast .close {
+        font-size: 1.5em;
+        line-height: 1;
+        color: #333;
+        opacity: 0.7;
+      }
+    `;
+    document.head.appendChild(style);
+    }
+
+    // Mode édition
+    let editMode = false;
+    let editSanctionId = null;
+    function editSanction(id, texte, heures) {
+      document.getElementById('sanctionTexte').value = texte;
+      document.getElementById('sanctionHeures').value = heures;
+      editMode = true;
+      editSanctionId = id;
+      document.querySelector('#addSanctionForm button[type="submit"]').textContent = 'Modifier';
+    }
+
+    // Ajout/édition AJAX
+    document.getElementById('addSanctionForm').onsubmit = function(e) {
+      e.preventDefault();
+      let form = e.target;
+      let data = new FormData(form);
+      let url = form.action;
+      if(editMode) {
+        url = '{% url "edit_sanction" %}';
+        data.append('id', editSanctionId);
+      }
+      fetch(url, {
+        method: 'POST',
+        headers: {'X-CSRFToken': data.get('csrfmiddlewaretoken')},
+        body: data
+      })
+      .then(r => r.json())
+      .then(res => {
+        if(res.success) {
+          showAlert(res.message, 'success');
+          reloadSanctionsTable();
+          form.reset();
+          editMode = false;
+          editSanctionId = null;
+          document.querySelector('#addSanctionForm button[type="submit"]').textContent = 'Ajouter';
+        } else {
+          showAlert(res.message, 'danger');
+        }
+      });
+    };
+
+    // Suppression AJAX
+    function deleteSanction(id) {
+      if(confirm('Supprimer cette sanction ?')) {
+        fetch(`{% url 'delete_sanction' %}?id=${id}`, {
+          method: 'POST',
+          headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        })
+        .then(r => r.json())
+        .then(res => {
+          if(res.success) {
+            showAlert(res.message, 'success');
+            reloadSanctionsTable();
+          } else {
+            showAlert(res.message, 'danger');
+          }
+        });
+      }
+    }
+    </script>
+  </div>
+</div>
+</div>
+{% endblock %}

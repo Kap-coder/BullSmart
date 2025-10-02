@@ -1,0 +1,24 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container py-4">
+  <div class="card shadow-sm border-0 mx-auto" style="max-width: 500px;">
+    <div class="card-body">
+      <h3 class="text-danger mb-4">Confirmer la suppression</h3>
+      <p>Êtes-vous sûr de vouloir supprimer l'enseignant suivant ?</p>
+      <ul class="list-group mb-3">
+        <li class="list-group-item"><strong>Nom:</strong> {{ teacher.user.last_name }}</li>
+        <li class="list-group-item"><strong>Prénom:</strong> {{ teacher.user.first_name }}</li>
+        <li class="list-group-item"><strong>Email:</strong> {{ teacher.user.email }}</li>
+        <li class="list-group-item"><strong>Téléphone:</strong> {{ teacher.phone }}</li>
+      </ul>
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger w-100">Supprimer</button>
+        <a href="{% url 'teacher_detail' teacher.id %}" class="btn btn-secondary w-100 mt-2">Annuler</a>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

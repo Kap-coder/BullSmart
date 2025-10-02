@@ -1,0 +1,107 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content class="ajax-content">
+
+    <div class="ajax-card">
+        <h2 class="text-2xl md:text-3xl font-bold text-[#2D5DA1] mb-6">Mon profil</h2>
+        <ul class="profile-list">
+            <li><strong>Nom complet :</strong> {{ user.get_full_name }}</li>
+            <li><strong>Nom d'utilisateur :</strong> {{ user.username }}</li>
+            <li><strong>Email :</strong> {{ user.email }}</li>
+            <li><strong>Rôle :</strong> {{ user.role }}</li>
+        </ul>
+        <a href="/profile/edit/" class="btn mt-6">Modifier le profil</a>
+    </div>
+
+
+<style>
+/* Conteneur AJAX */
+.ajax-content {
+    width: 100%;
+    margin: 2rem auto;
+    box-sizing: border-box;
+}
+
+/* Card */
+.ajax-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    text-align: center;
+    animation: fadeIn 0.4s ease-in-out;
+    width: 100%;
+}
+
+/* Titres */
+.ajax-card h2 {
+    color: #2D5DA1;
+}
+
+/* Liste profil */
+.profile-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.profile-list li {
+    background: #F5F5F5;
+    margin: 0.5rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    color: #424242;
+    font-size: 1rem;
+    text-align: left;
+}
+
+/* Bouton */
+.ajax-card .btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #2D5DA1;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.ajax-card .btn:hover {
+    background-color: #0F2557;
+    transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ajax-card {
+        padding: 1.5rem;
+    }
+    .profile-list li {
+        font-size: 0.95rem;
+        padding: 0.65rem 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .ajax-card {
+        padding: 1rem;
+    }
+    .profile-list li {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.7rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+
+
+</div>
+
+{% endblock %}

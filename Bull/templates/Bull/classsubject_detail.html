@@ -1,0 +1,21 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container mt-4">
+    <h2>Détail association classe-matière</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Matière :</strong> {{ classsubject.subject.name }}</p>
+            <p><strong>Classe :</strong> <span class="badge bg-primary">{{ classsubject.classroom.name }}</span></p>
+            <p><strong>Niveau :</strong> {{ classsubject.classroom.level }}</p>
+            <p><strong>Série :</strong> {{ classsubject.classroom.series|default:'-' }}</p>
+            <p><strong>Professeur :</strong> {% if classsubject.teacher %}{{ classsubject.teacher.user.get_full_name }}{% else %}-{% endif %}</p>
+            <p><strong>Coefficient :</strong> {{ classsubject.coefficient }}</p>
+        </div>
+    </div>
+    <a href="{% url 'subject_detail' classsubject.subject.id %}" class="btn btn-secondary">Retour</a>
+    <a href="{% url 'classsubject_edit' classsubject.id %}" class="btn btn-warning">Éditer</a>
+    <a href="{% url 'classsubject_delete' classsubject.id %}" class="btn btn-danger">Supprimer</a>
+</div>
+</div>
+{% endblock %}

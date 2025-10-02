@@ -1,0 +1,48 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+  <h2>Statistiques de la classe</h2>
+  
+    <ul>
+      <li>Moyenne générale : <strong>{{ stats.moyenne_generale|default:'-' }}</strong></li>
+      <li>Moyenne minimale : <strong>{{ stats.moyenne_min|default:'-' }}</strong></li>
+      <li>Moyenne maximale : <strong>{{ stats.moyenne_max|default:'-' }}</strong></li>
+      <li>Nombre d'élèves en échec (&lt; 10) : <strong>{{ stats.nb_echec|default:'-' }}</strong></li>
+    </ul>
+    <h3>Tableau détaillé des élèves</h3>
+    {% if stats.detailed_rows and stats.detailed_rows|length > 0 %}
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            {% for subject in stats.subjects %}
+              <th>{{ subject }}</th>
+            {% endfor %}
+            <th>Somme/Total coef (Moyenne)</th>
+            <th>Rang</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in stats.detailed_rows %}
+            <tr>
+              <td>{{ row.nom }}</td>
+              {% for note in row.notes %}
+                <td>{{ note.note }}</td>
+              {% endfor %}
+              <td>{{ row.somme }}/{{ row.total_coef }} = {{ row.moyenne }}</td>
+              <td>{{ row.rang }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="alert alert-warning">Aucun élève trouvé dans les statistiques.</div>
+    {% endif %}
+    <div class="mt-4">
+  <a href="{% url 'export_bulletins_excel' %}?sequence={{ request.GET.sequence }}&classroom={{ request.GET.classroom }}" class="btn btn-success" data-no-ajax>Télécharger Excel</a>
+      <a href="{% url 'export_bulletins_pdf' %}?sequence={{ request.GET.sequence }}&classroom={{ request.GET.classroom }}" class="btn btn-primary ml-2" data-no-ajax>Télécharger tous les bulletins PDF</a>
+      <a href="{% url 'bulletins' %}?sequence={{ request.GET.sequence }}&classroom={{ request.GET.classroom }}" class="btn btn-secondary ml-2">Retour</a>
+    </div>
+  
+</div>
+{% endblock %}

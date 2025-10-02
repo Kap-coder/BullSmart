@@ -1,0 +1,18 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container py-5">
+  <div class="card border-danger shadow-sm mx-auto" style="max-width: 500px;">
+    <div class="card-body text-center">
+      <h4 class="text-danger mb-3">Confirmer la suppression</h4>
+      <p>Voulez-vous vraiment supprimer l'élève <strong>{{ student.matricule }} - {{ student.first_name }} {{ student.last_name }}</strong> ?</p>
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+        <a href="/students/{{ student.id }}/" class="btn btn-secondary ms-2">Annuler</a>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

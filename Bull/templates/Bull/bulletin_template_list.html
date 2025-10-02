@@ -1,0 +1,37 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container py-4">
+  <h2 class="mb-4">Canevas bulletins</h2>
+  <a href="{% url 'bulletin_template_create' %}" class="btn btn-primary mb-3">Ajouter un canevas</a>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Année scolaire</th>
+        <th>Nom</th>
+        <th>Entête</th>
+        <th>Pied de page</th>
+        <th>Actif</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in templates %}
+      <tr>
+        <td>{{ t.school_year }}</td>
+        <td>{{ t.name }}</td>
+        <td>{% if t.header_docx %}<a href="{{ t.header_docx.url }}" target="_blank">Télécharger</a>{% else %}-{% endif %}</td>
+        <td>{% if t.footer_docx %}<a href="{{ t.footer_docx.url }}" target="_blank">Télécharger</a>{% else %}-{% endif %}</td>
+        <td>{% if t.active %}<span class="badge bg-success">Oui</span>{% else %}<span class="badge bg-secondary">Non</span>{% endif %}</td>
+        <td>
+          <a href="{% url 'bulletin_template_edit' t.id %}" class="btn btn-sm btn-warning">Modifier</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6">Aucun canevas enregistré.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+</div>
+{% endblock %}

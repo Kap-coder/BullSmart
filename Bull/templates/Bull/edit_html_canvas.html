@@ -1,0 +1,12 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+  <h2 class="mb-4">Éditer le canevas bulletin (HTML)</h2>
+  <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm mx-auto" style="max-width: 700px;">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success w-100">Enregistrer</button>
+    <a href="{% url 'parameters' %}" class="btn btn-secondary w-100 mt-2">Annuler</a>
+  </form>
+</div>
+{% endblock %}

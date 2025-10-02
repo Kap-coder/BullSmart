@@ -1,0 +1,29 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container mt-4">
+    <h2>Ajouter une matière</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="code" class="form-label">Code</label>
+            <input type="text" class="form-control" id="code" name="code" required>
+        </div>
+        <div class="mb-3">
+            <label for="name" class="form-label">Nom</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+            <label for="category" class="form-label">Catégorie</label>
+            <select class="form-control" id="category" name="category">
+                <option value="core">Tronc commun</option>
+                <option value="optional">Option</option>
+                <option value="extra">Complémentaire</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+        <a href="{% url 'subjects' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+</div>
+{% endblock %}

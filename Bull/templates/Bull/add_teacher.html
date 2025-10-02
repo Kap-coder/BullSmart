@@ -1,0 +1,86 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container py-4">
+  <h2 class="mb-4 text-primary">Ajouter un enseignant</h2>
+  <div class="card shadow-sm border-0 mx-auto" style="max-width: 700px;">
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h5>Informations utilisateur</h5>
+        {% for field in user_form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.name == 'password' %}
+              <small class="form-text text-muted">Définir le mot de passe initial pour l'enseignant.</small>
+            {% endif %}
+            {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
+          </div>
+        {% endfor %}
+        <h5 class="mt-4">Informations enseignant</h5>
+        {% for field in teacher_form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
+          </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-success w-100">Enregistrer</button>
+      </form>
+      <hr>
+      <h5 class="mt-4">Lier une matière et une classe existantes à l'enseignant</h5>
+      <form method="post" id="link-class-form">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Classe</label>
+          <select name="classroom" id="id_classroom" class="form-select">
+            <option value="">---------</option>
+            {% for classroom in class_subject_form.fields.classroom.queryset %}
+              <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Matière</label>
+          <select name="subject" id="id_subject" class="form-select">
+            <option value="">---------</option>
+          </select>
+        </div>
+        <button type="submit" name="add_class_subject" class="btn btn-primary w-100">Lier la classe et la matière</button>
+      </form>
+      <h5 class="mt-4">Classes/Matières liées</h5>
+      <ul class="list-group mb-3">
+        {% for cs in class_subjects %}
+          <li class="list-group-item">{{ cs.classroom.name }} - {{ cs.subject.name }}</li>
+        {% empty %}
+          <li class="list-group-item">Aucune classe/matière liée.</li>
+        {% endfor %}
+      </ul>
+      <a href="{% url 'teachers_list' %}" class="btn btn-secondary w-100 mt-2">Retour</a>
+    </div>
+  </div>
+</div>
+ </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const classroomSelect = document.getElementById('id_classroom');
+    const subjectSelect = document.getElementById('id_subject');
+    classroomSelect.addEventListener('change', function() {
+      const classroomId = this.value;
+      subjectSelect.innerHTML = '<option value="">Chargement...</option>';
+      fetch('/ajax/get_subjects_for_class/?classroom_id=' + classroomId)
+        .then(response => response.json())
+        .then(data => {
+          subjectSelect.innerHTML = '<option value="">---------</option>';
+          data.subjects.forEach(function(subj) {
+            const opt = document.createElement('option');
+            opt.value = subj.id;
+            opt.textContent = subj.name;
+            subjectSelect.appendChild(opt);
+          });
+        });
+    });
+  });
+</script>
+{% endblock %}

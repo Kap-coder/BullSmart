@@ -1,0 +1,37 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container mt-4">
+    <h2>Ajouter une association classe-matière</h2>
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="classroom" class="form-label">Classe</label>
+            <select class="form-control" id="classroom" name="classroom">
+                {% for classroom in classrooms %}
+                    <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="teacher" class="form-label">Professeur</label>
+            <select class="form-control" id="teacher" name="teacher">
+                <option value="">-- Aucun --</option>
+                {% for teacher in teachers %}
+                    <option value="{{ teacher.id }}">{{ teacher.user.get_full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="coefficient" class="form-label">Coefficient</label>
+            <input type="number" step="0.1" class="form-control" id="coefficient" name="coefficient">
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+        <a href="{% url 'subject_detail' subject.id %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+</div>
+{% endblock %}

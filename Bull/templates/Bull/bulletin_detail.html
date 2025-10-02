@@ -1,0 +1,62 @@
+{% extends 'Bull/base.html' %}
+{% load bulletin_tags %}
+{% block content %}
+<div data-ajax-content>
+  <h2>Détail du bulletin</h2>
+  {% if student and classroom and sequence %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h4>{{ student.last_name }} {{ student.first_name }}</h4>
+        <p>Classe : {{ classroom.name }}<br>Séquence : {{ sequence.name }}</p>
+        <p>Moyenne : <strong>{% if avg %}{{ avg }}{% else %}-{% endif %}</strong> | Rang : <strong>{% if rank %}{{ rank }}{% else %}-{% endif %}</strong></p>
+      </div>
+    </div>
+    {% if detailed_row %}
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Matière</th>
+            <th>Coef</th>
+            <th>Note/20</th>
+            <th>Note x coef</th>
+            <th>Rang matière</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for note in detailed_row.notes %}
+            <tr>
+              <td>{{ note.subject }}</td>
+              <td>{{ note.coef }}</td>
+              <td>{{ note.note }}</td>
+              <td>{{ note.note_x_coef }}</td>
+              <td>{{ note.rang_matiere }}</td>
+            </tr>
+          {% endfor %}
+          <tr>
+            <td class="text-end"><strong>Total</strong></td>
+            <td><strong>{{ detailed_row.total_coef }}</strong></td>
+            <td><strong>{{ detailed_row.somme_notes }}</strong></td>
+            <td><strong>{{ detailed_row.somme }}</strong></td>
+            <td></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="text-end"><strong>Moyenne</strong></td>
+            <td><strong>{{ detailed_row.moyenne }}</strong></td>
+            <td><strong>Rang général : {{ detailed_row.rang }}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    {% else %}
+      <div class="alert alert-warning">Aucune matière trouvée pour cette classe.</div>
+    {% endif %}
+    {% if pdf_path %}
+      <a href="{% url 'download_bulletin_pdf' student_id=student.id sequence_id=sequence.id %}" class="btn btn-primary" target="_blank" data-no-ajax>Télécharger le bulletin PDF</a>
+    {% endif %}
+    <a href="{% url 'bulletins' %}?sequence={{ sequence.id }}&classroom={{ classroom.id }}" class="btn btn-secondary mt-3">Retour</a>
+  {% else %}
+    <div class="alert alert-danger">Impossible de charger le détail du bulletin. Vérifiez les données de l'élève, de la classe ou de la séquence.</div>
+  {% endif %}
+</div>
+{% endblock %}

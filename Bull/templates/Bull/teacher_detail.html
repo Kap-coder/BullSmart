@@ -1,0 +1,48 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container py-4">
+  <h2 class="mb-4 text-primary">Détail de l'enseignant</h2>
+  <div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
+    <div class="card-body">
+      <h5 class="mb-3">Informations utilisateur</h5>
+      <ul class="list-group mb-3">
+        <li class="list-group-item"><strong>Nom:</strong> {{ teacher.user.last_name }}</li>
+        <li class="list-group-item"><strong>Prénom:</strong> {{ teacher.user.first_name }}</li>
+        <li class="list-group-item"><strong>Email:</strong> {{ teacher.user.email }}</li>
+        <li class="list-group-item"><strong>Nom d'utilisateur:</strong> {{ teacher.user.username }}</li>
+      </ul>
+      <h5 class="mb-3">Informations enseignant</h5>
+      <ul class="list-group mb-3">
+        <li class="list-group-item"><strong>Téléphone:</strong> {{ teacher.phone }}</li>
+        <li class="list-group-item"><strong>Actif:</strong> {% if teacher.is_active %}Oui{% else %}Non{% endif %}</li>
+      </ul>
+      <a href="{% url 'edit_teacher' teacher.id %}" class="btn btn-primary">Modifier</a>
+      <a href="{% url 'teachers_list' %}" class="btn btn-secondary ms-2">Retour</a>
+      <a href="{% url 'delete_teacher' teacher.id %}" class="btn btn-danger ms-2" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet enseignant ?');">Supprimer</a>
+    </div>
+  </div>
+  <h4 class="mt-4">Matières et classes associées</h4>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Matière</th>
+        <th>Classe</th>
+        <th>Coefficient</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cs in class_subjects %}
+        <tr>
+          <td>{{ cs.subject.name }}</td>
+          <td>{{ cs.classroom.name }}</td>
+          <td>{{ cs.coefficient }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">Aucune matière associée.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+</div>
+{% endblock %}

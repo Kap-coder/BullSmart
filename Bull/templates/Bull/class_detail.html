@@ -1,0 +1,26 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container mt-4">
+    <h2>Détail de la classe</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">{{ classroom.name }}</h4>
+            <p><strong>Niveau :</strong> {{ classroom.level }}</p>
+            <p><strong>Série :</strong> {{ classroom.series|default:'-' }}</p>
+            <p><strong>Option :</strong> {{ classroom.option }}</p>
+            <p><strong>Prof principal :</strong> {% if classroom.head_teacher %}{{ classroom.head_teacher.user.get_full_name }}{% else %}-{% endif %}</p>
+        </div>
+    </div>
+    <h5>Statistiques des élèves</h5>
+    <ul class="list-group mb-4">
+        <li class="list-group-item">Total élèves : <strong>{{ stats.total }}</strong></li>
+        <li class="list-group-item">Filles : <strong>{{ stats.filles }}</strong></li>
+        <li class="list-group-item">Garçons : <strong>{{ stats.garcons }}</strong></li>
+        <li class="list-group-item">Redoublants : <strong>{{ stats.redoublants }}</strong></li>
+    </ul>
+    <a href="{% url 'classes' %}" class="btn btn-secondary">Retour</a>
+    <a href="{% url 'class_edit' classroom.id %}" class="btn btn-warning">Éditer</a>
+</div>
+</div>
+{% endblock %}

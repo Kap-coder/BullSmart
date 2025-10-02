@@ -1,0 +1,137 @@
+{% load static %}
+<style>
+/* Full page background identique à la landing */
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: url("{% static 'img/landing-bg.jpg' %}") no-repeat center center fixed;
+    background-size: cover;
+}
+
+/* Overlay pour lisibilité */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(245,245,245,0.8);
+    z-index: 0;
+}
+
+/* Container centré */
+.login-container {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+/* Carte login */
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem 2rem;
+    border-radius: 2rem;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+/* Titre */
+.login-card h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2D5DA1;
+    margin-bottom: 1.5rem;
+}
+
+/* Labels et inputs */
+.login-card label {
+    display: block;
+    text-align: left;
+    font-weight: 600;
+    color: #424242;
+    margin-bottom: 0.5rem;
+    margin-top: 1rem;
+}
+
+.login-card input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.login-card input:focus {
+    outline: none;
+    border-color: #2D5DA1;
+    box-shadow: 0 0 5px rgba(45,93,161,0.5);
+}
+
+/* Bouton */
+.login-card button {
+    width: 100%;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+    border-radius: 1rem;
+    border: none;
+    background: linear-gradient(90deg,#2D5DA1,#0F2557);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+
+.login-card button:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* Erreur */
+.login-card .error-message {
+    color: #F44336;
+    font-weight: 600;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .login-card h1 {
+        font-size: 1.75rem;
+    }
+    .login-card input, .login-card button {
+        font-size: 1rem;
+    }
+}
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <h1>Connexion</h1>
+        <form method="post">
+            {% csrf_token %}
+            <label for="username">Nom d'utilisateur :</label>
+            <input type="text" name="username" id="username" required>
+            
+            <label for="password">Mot de passe :</label>
+            <input type="password" name="password" id="password" required>
+            
+            <button type="submit">Se connecter</button>
+            
+            {% if form.errors %}
+                <p class="error-message">Nom d'utilisateur ou mot de passe incorrect.</p>
+            {% endif %}
+        </form>
+    </div>
+</div>

@@ -1,0 +1,56 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<h2>Bulletins consolidés de la classe {{ classroom.name }}</h2>
+<form method="get" class="mb-4">
+  <input type="hidden" name="classroom" value="{{ classroom.id }}">
+  <input type="hidden" name="schoolyear" value="{{ schoolyear.id }}">
+  <div class="row">
+    <div class="col-md-4">
+      <label>Filtrer par élève</label>
+      <select name="student" class="form-control" onchange="this.form.submit()">
+        <option value="">-- Tous --</option>
+        {% for student in students %}
+          <option value="{{ student.id }}" {% if request.GET.student == student.id|stringformat:'s' %}selected{% endif %}>{{ student.last_name }} {{ student.first_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+</form>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Élève</th>
+      <th>Bulletins séquence</th>
+      <th>Bulletins trimestre</th>
+      <th>Bulletin annuel</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for student in students %}
+      {% if not request.GET.student or request.GET.student == student.id|stringformat:'s' %}
+      <tr>
+        <td>{{ student.last_name }} {{ student.first_name }}</td>
+        <td>
+          {% for b in bulletins_by_student|get_sequence_bulletins:student %}
+            <a href="{% url 'bulletin_detail' student_id=student.id sequence_id=b.sequence.id %}" class="btn btn-info btn-sm mb-1">Séquence {{ b.sequence.name }}</a>
+          {% endfor %}
+        </td>
+        <td>
+          {% for b in bulletins_by_student|get_trimester_bulletins:student %}
+            <a href="#" class="btn btn-primary btn-sm mb-1">Trimestre {{ b.sequence.term.name }}</a>
+          {% endfor %}
+        </td>
+        <td>
+          {% for b in bulletins_by_student|get_annual_bulletins:student %}
+            <a href="#" class="btn btn-success btn-sm mb-1">Annuel</a>
+          {% endfor %}
+        </td>
+      </tr>
+      {% endif %}
+    {% endfor %}
+  </tbody>
+</table>
+<a href="{% url 'bulletins' %}?classroom={{ classroom.id }}&schoolyear={{ schoolyear.id }}" class="btn btn-secondary mt-3">Retour</a>
+</div>
+{% endblock %}

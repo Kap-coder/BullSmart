@@ -1,0 +1,75 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content style="padding:1rem; font-family:'Segoe UI', Roboto, sans-serif;">
+
+  <!-- Carte d'introduction -->
+  <div class="card card-custom mb-4" style="background: #f5f8fc; border-radius: 1.1rem; box-shadow: 0 2px 12px rgba(45,93,161,0.07); border: 1px solid #e3e8f0; padding:1.5rem;">
+    <div class="card-body py-3 px-4">
+      <h2 class="mb-2" style="color:#2D5DA1;font-weight:700; font-size:1.8rem;">Gestion des enseignants</h2>
+      <p class="mb-0" style="color:#424242;font-size:1.05rem;">
+        Retrouvez ici la liste complète des enseignants. Vous pouvez ajouter, éditer ou supprimer facilement les enseignants.
+      </p>
+    </div>
+  </div>
+
+  <!-- Boutons actions -->
+  <div style="margin-top: 10px; display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:10px;">
+    <a href="{% url 'add_teacher' %}" style="padding:0.5rem 1rem; background:#2D5DA1; color:white; border-radius:0.5rem; font-weight:600; text-decoration:none; display:inline-block;">Ajouter enseignant</a>
+  </div>
+
+  <!-- Table enseignants -->
+  <div style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:0.95rem; min-width:600px;">
+      <thead style="background:#f0f4f8; color:#2D5DA1; font-weight:600;">
+        <tr>
+          <th style="padding:10px; border:1px solid #e3e8f0;">Nom</th>
+          <th style="padding:10px; border:1px solid #e3e8f0;">Prénom</th>
+          <th style="padding:10px; border:1px solid #e3e8f0;">Email</th>
+          <th style="padding:10px; border:1px solid #e3e8f0;">Téléphone</th>
+          <th style="padding:10px; border:1px solid #e3e8f0;">Actif</th>
+          <th style="padding:10px; border:1px solid #e3e8f0;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for teacher in teachers %}
+          <tr style="border-bottom:1px solid #e3e8f0;">
+            <td style="padding:8px;">{{ teacher.user.last_name }}</td>
+            <td style="padding:8px;">{{ teacher.user.first_name }}</td>
+            <td style="padding:8px;">{{ teacher.user.email }}</td>
+            <td style="padding:8px;">{{ teacher.phone }}</td>
+            <td style="padding:8px; text-align:center;">
+              {% if teacher.is_active %}
+                <span style="display:inline-block; padding:3px 8px; background:#27ae60; color:white; border-radius:12px; font-size:0.8rem;">Oui</span>
+              {% else %}
+                <span style="display:inline-block; padding:3px 8px; background:#e74c3c; color:white; border-radius:12px; font-size:0.8rem;">Non</span>
+              {% endif %}
+            </td>
+            <td style="padding:8px; text-align:center; display:flex; flex-wrap:wrap; gap:0.3rem; justify-content:center;">
+              <a href="{% url 'teacher_detail' teacher.id %}" style="padding:4px 8px; background:#3498db; color:white; border-radius:5px; text-decoration:none; font-size:0.8rem;">Détail</a>
+              <a href="{% url 'edit_teacher' teacher.id %}" style="padding:4px 8px; background:#f39c12; color:white; border-radius:5px; text-decoration:none; font-size:0.8rem;">Éditer</a>
+              <a href="{% url 'delete_teacher' teacher.id %}" style="padding:4px 8px; background:#e74c3c; color:white; border-radius:5px; text-decoration:none; font-size:0.8rem;">Supprimer</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" style="text-align:center; padding:12px; color:#666;">Aucun enseignant trouvé.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Responsive adjustments -->
+<style>
+  @media (max-width:768px){
+    h2 { font-size:1.5rem; }
+    table { font-size:0.85rem; }
+    .card-body p { font-size:0.95rem; }
+    a { font-size:0.85rem; }
+    td, th { padding:6px; }
+  }
+</style>
+
+{% endblock %}

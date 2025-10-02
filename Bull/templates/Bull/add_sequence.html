@@ -1,0 +1,33 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container mt-4">
+    <h2>Ajouter une séquence</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="term" class="form-label">Trimestre</label>
+            <select class="form-control" id="term" name="term">
+                {% for term in terms %}
+                    <option value="{{ term.id }}">{{ term.name }} ({{ term.school_year.name }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="name" class="form-label">Nom de la séquence</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+            <label for="order" class="form-label">Ordre</label>
+            <input type="number" class="form-control" id="order" name="order" required>
+        </div>
+        <div class="mb-3">
+            <label for="weight" class="form-label">Poids</label>
+            <input type="number" step="0.01" class="form-control" id="weight" name="weight" value="1">
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+ </div>
+{% endblock %}

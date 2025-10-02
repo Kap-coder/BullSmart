@@ -1,0 +1,338 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<style>
+  body {
+    background: #f4f6f9;
+    font-family: "Segoe UI", Roboto, sans-serif;
+  }
+
+  .dashboard-container {
+    padding: 20px;
+  }
+
+  .dashboard-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+  }
+
+  /* Cartes stats rapides */
+  .stat-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    padding: 20px 15px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    max-width: 280px;
+    margin: 0 auto 15px auto;
+  }
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+  }
+  .stat-icon {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  /* Couleurs différenciées */
+  .color-eleves { color: #2ecc71; }
+  .color-enseignants { color: #3498db; }
+  .color-classes { color: #f39c12; }
+  .color-tables { color: #9b59b6; }
+  .color-reussite { color: #27ae60; }
+  .color-echec { color: #e74c3c; }
+
+  /* Cards générales */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+  }
+  .card-body {
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #34495e;
+    margin-bottom: 15px;
+  }
+
+  /* Progress bar */
+  .progress {
+    background: #e9ecef;
+    border-radius: 20px;
+    overflow: hidden;
+    height: 22px;
+  }
+  .progress-bar {
+    background: #27ae60;
+    color: #fff;
+    text-align: center;
+    line-height: 22px;
+    font-weight: 600;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+  }
+  table th, table td {
+    border: 1px solid #dee2e6;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+  table th {
+    background: #f8f9fa;
+    font-weight: 600;
+  }
+
+  /* Graphiques */
+  .chart-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 250px;
+  }
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+</style>
+
+<div class="dashboard-container">
+  <h2 class="dashboard-title">{{ dashboard_title }}</h2>
+
+  <!-- Stats rapides avec Bootstrap Grid -->
+  <div class="row justify-content-center">
+    <!-- Stats rapides avec Bootstrap Grid --> <div class="row justify-content-center"> <div class="col-sm-6 col-md-4 col-lg-2 mb-3"> <div class="stat-card text-center"> <i class="fas fa-user-graduate stat-icon color-eleves"></i> <h6>Élèves</h6> <p class="stat-value">{{ nb_eleves }}</p> </div> </div> <div class="col-sm-6 col-md-4 col-lg-2 mb-3"> <div class="stat-card text-center"> <i class="fas fa-chalkboard-teacher stat-icon color-enseignants"></i> <h6>Enseignants</h6> <p class="stat-value">{{ nb_enseignants }}</p> </div> </div> <div class="col-sm-6 col-md-4 col-lg-2 mb-3"> <div class="stat-card text-center"> <i class="fas fa-school stat-icon color-classes"></i> <h6>Classes</h6> <p class="stat-value">{{ nb_classes }}</p> </div> </div> <div class="col-sm-6 col-md-4 col-lg-2 mb-3"> <div class="stat-card text-center"> <i class="fas fa-database stat-icon color-tables"></i> <h6>Tables BD</h6> <p class="stat-value">{{ nb_tables }}</p> </div> </div> <div class="col-sm-6 col-md-4 col-lg-2 mb-3"> <div class="stat-card text-center"> <i class="fas fa-check-circle stat-icon color-reussite"></i> <h6>Réussite</h6> <p class="stat-value color-reussite">{{ nb_reussite }}</p> </div> </div> <div class="col-sm-6 col-md-4 col-lg-2 mb-3"> <div class="stat-card text-center"> <i class="fas fa-times-circle stat-icon color-echec"></i> <h6>Échec</h6> <p class="stat-value color-echec">{{ nb_echec }}</p> </div> </div> </div>
+  </div>
+
+  <!-- Bloc gauche/droite -->
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Période active</h5>
+          {% if school_year %}
+            <p>Année scolaire : <strong>{{ school_year.name }}</strong></p>
+            <ul>{% for t in trimestres %}<li>{{ t.name }}</li>{% endfor %}</ul>
+          {% else %}
+            <p>Aucune année scolaire active.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Taux de réussite global</h5>
+          <div class="progress">
+            <div class="progress-bar" style="width: {{ taux_reussite|default:0 }}%;">
+              {{ taux_reussite }} %
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Évolution des performances</h5>
+          <div class="chart-wrapper">
+            <canvas id="evolutionChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Répartition des utilisateurs</h5>
+              <div class="chart-wrapper"><canvas id="rolesChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Espace disque bulletins</h5>
+              <div class="chart-wrapper"><canvas id="diskChart"></canvas></div>
+              <p class="mt-2">{{ disk_usage|filesizeformat }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card mt-3">
+        <div class="card-body">
+          <h5 class="card-title">Bulletins générés</h5>
+          <div class="chart-wrapper"><canvas id="bulletinsChart"></canvas></div>
+          <p>Total : <strong>{{ total_bulletins }}</strong></p>
+          <p>Élèves avec bulletin : <strong>{{ eleves_avec_bulletin }}</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphiques larges -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Moyennes par classe / trimestre</h5>
+          <div class="chart-wrapper"><canvas id="moyennesChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Moyenne générale par classe</h5>
+          <div class="chart-wrapper"><canvas id="moyenneClasseChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Min/Max par matière</h5>
+          <div class="chart-wrapper"><canvas id="matiereStatsChart"></canvas></div>
+          <table>
+            <thead><tr><th>Matière</th><th>Min</th><th>Max</th></tr></thead>
+            <tbody>
+              {% for stat in matiere_stats %}
+              <tr><td>{{ stat.subject }}</td><td>{{ stat.min }}</td><td>{{ stat.max }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% comment %} <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> {% endcomment %}
+<script>
+window.initDashboardCharts = function() {
+  // Roles Chart
+  if(document.getElementById('rolesChart')) {
+    new Chart(document.getElementById('rolesChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: [{% for stat in roles_stats %}'{{ stat.role }}',{% endfor %}],
+        datasets:[{
+          label:'Utilisateurs',
+          data:[{% for stat in roles_stats %}{{ stat.count }},{% endfor %}],
+          backgroundColor: ['#0d6efd','#198754','#ffc107','#6c757d','#dc3545','#20c997']
+        }]
+      },
+      options:{responsive:true, cutout:'60%', plugins:{legend:{position:'bottom'}}}
+    });
+  }
+
+  // Evolution Chart
+  if(document.getElementById('evolutionChart')) {
+    new Chart(document.getElementById('evolutionChart').getContext('2d'),{
+      type:'line',
+      data:{
+        labels:[{% for ev in evolution %}'{{ ev.year }}',{% endfor %}],
+        datasets:[{
+          label:'Moyenne annuelle',
+          data:[{% for ev in evolution %}{{ ev.average|default:0 }},{% endfor %}],
+          borderColor:'#198754',
+          backgroundColor:'rgba(25,135,84,0.2)',
+          fill:true
+        }]
+      },
+      options:{responsive:true, plugins:{legend:{position:'bottom'}}}
+    });
+  }
+
+  // Moyennes Chart
+  if(document.getElementById('moyennesChart')) {
+    new Chart(document.getElementById('moyennesChart').getContext('2d'), {
+      type:'bar',
+      data:{
+        labels:[{% for mc in moyennes_classes %}'{{ mc.class }}-{{ mc.term }}',{% endfor %}],
+        datasets:[{label:'Moyenne', data:[{% for mc in moyennes_classes %}{{ mc.average|default:0 }},{% endfor %}], backgroundColor:'#0d6efd'}]
+      },
+      options:{responsive:true, plugins:{legend:{display:false}}}
+    });
+  }
+
+  // Bulletins Chart
+  if(document.getElementById('bulletinsChart')) {
+    new Chart(document.getElementById('bulletinsChart').getContext('2d'),{
+      type:'doughnut',
+      data:{
+        labels:['Générés','Non générés'],
+        datasets:[{
+          data:[{{ total_bulletins }}, {{ nb_eleves|default:0 }} - {{ eleves_avec_bulletin|default:0 }}],
+          backgroundColor:['#0d6efd','#dee2e6']
+        }]
+      },
+      options:{responsive:true, cutout:'60%'}
+    });
+  }
+
+  // Disk Chart
+  if(document.getElementById('diskChart')) {
+    new Chart(document.getElementById('diskChart').getContext('2d'),{
+      type:'bar',
+      data:{labels:['Espace utilisé'], datasets:[{label:'octets', data:[{{ disk_usage|default:0 }}], backgroundColor:'#198754'}]},
+      options:{responsive:true, plugins:{legend:{display:false}}}
+    });
+  }
+
+  // Moyenne par classe Chart
+  if(document.getElementById('moyenneClasseChart')) {
+    new Chart(document.getElementById('moyenneClasseChart').getContext('2d'),{
+      type:'bar',
+      data:{
+        labels:[{% for c in moyennes_par_classe %}'{{ c.class }}',{% endfor %}],
+        datasets:[{label:'Moyenne', data:[{% for c in moyennes_par_classe %}{{ c.average|default:0 }},{% endfor %}], backgroundColor:'#0d6efd'}]
+      },
+      options:{responsive:true, plugins:{legend:{display:false}}}
+    });
+  }
+
+  // Min/Max par matière Chart
+  if(document.getElementById('matiereStatsChart')) {
+    new Chart(document.getElementById('matiereStatsChart').getContext('2d'),{
+      type:'bar',
+      data:{
+        labels:[{% for m in matiere_stats %}'{{ m.subject }}',{% endfor %}],
+        datasets:[
+          {label:'Min', data:[{% for m in matiere_stats %}{{ m.min|default:0 }},{% endfor %}], backgroundColor:'#dc3545'},
+          {label:'Max', data:[{% for m in matiere_stats %}{{ m.max|default:0 }},{% endfor %}], backgroundColor:'#198754'}
+        ]
+      },
+      options:{responsive:true}
+    });
+  }
+};
+if(typeof window.initDashboardCharts==='function') window.initDashboardCharts();
+</script>
+</div>
+{% endblock %}

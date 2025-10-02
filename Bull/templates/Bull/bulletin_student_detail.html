@@ -1,0 +1,60 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Bulletin de notes de : {{ student.first_name }} {{ student.last_name }}</h2>
+    <a href="{% url 'bulletin_class_students' class_id=student.classroom.id %}" class="btn btn-secondary">Retour à la liste des élèves</a>
+</div>
+
+{% if school_year %}
+    <p><strong>Année scolaire :</strong> {{ school_year.name }}</p>
+    <p><strong>Classe :</strong> {{ student.classroom.name }}</p>
+    <hr>
+
+    {% for term, sequences in grades_data.items %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">{{ term.name }}</h4>
+        </div>
+        <div class="card-body">
+            {% for sequence, grades in sequences.items %}
+            <h5 class="mb-3">{{ sequence.name }}</h5>
+            <table class="table table-bordered table-striped table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Matière</th>
+                        <th>Note / 20</th>
+                        <th>Coeff.</th>
+                        <th>Note pondérée</th>
+                        <th>Enseignant(e)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grade_info in grades %}
+                    <tr>
+                        <td>{{ grade_info.object.class_subject.subject.name }}</td>
+                        <td>{{ grade_info.object.value|floatformat:2 }}</td>
+                        <td>{{ grade_info.object.class_subject.coefficient|floatformat:2 }}</td>
+                        <td>{{ grade_info.weighted_value|floatformat:2 }}</td>
+                        <td>{{ grade_info.object.class_subject.teacher.user.get_full_name|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% empty %}
+            <p>Aucune note trouvée pour cette séquence.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-warning">
+        Aucune note n'a été trouvée pour cet élève pour l'année scolaire en cours.
+    </div>
+    {% endfor %}
+
+{% else %}
+<div class="alert alert-danger">
+    Aucune année scolaire active n'a été configurée. Impossible d'afficher les notes.
+</div>
+{% endif %}
+
+{% endblock %}

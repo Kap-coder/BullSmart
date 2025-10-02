@@ -1,0 +1,188 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container mt-4">
+    <h2>Détail de la matière</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">{{ subject.name }}</h4>
+            <p><strong>Code :</strong> {{ subject.code }}</p>
+            <p><strong>Catégorie :</strong> {{ subject.get_category_display }}</p>
+        </div>
+    </div>
+        <a href="{% url 'subjects' %}" class="btn btn-secondary">Retour</a>
+        <a href="{% url 'subject_edit' subject.id %}" class="btn btn-warning">Éditer</a>
+
+        <hr>
+        <h4>Classes associées à cette matière</h4>
+        <form method="get" class="row g-3 mb-3">
+            <div class="col-md-4">
+                <select name="class" class="form-select">
+                    <option value="">Toutes les classes</option>
+                    {% for classroom in classrooms %}
+                        <option value="{{ classroom.id }}" {% if filter_class == classroom.id|stringformat:'s' %}selected{% endif %}>{{ classroom.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Recherche par nom ou professeur" value="{{ search }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary">Filtrer</button>
+            </div>
+        </form>
+        <table class="table table-bordered">
+                <thead>
+                        <tr>
+                                <th>Classe</th>
+                                <th>Professeur</th>
+                                <th>Coefficient</th>
+                                <th>Actions</th>
+                        </tr>
+                </thead>
+                <tbody>
+            {% for cs in class_subjects %}
+            <tr>
+                <td>{{ cs.classroom.name }}</td>
+                <td>{% if cs.teacher %}{{ cs.teacher.user.get_full_name }}{% else %}-{% endif %}</td>
+                <td>{{ cs.coefficient }}</td>
+                <td>
+                    <a href="{% url 'classsubject_detail' cs.id %}" class="btn btn-sm btn-info">Détail</a>
+                    <a href="{% url 'classsubject_edit' cs.id %}" class="btn btn-sm btn-warning">Éditer</a>
+                    <a href="{% url 'classsubject_delete' cs.id %}" class="btn btn-sm btn-danger">Supprimer</a>
+                </td>
+            </tr>
+            {% endfor %}
+                </tbody>
+        </table>
+        <!-- Modals placés à la fin du document -->
+        {% for cs in class_subjects %}
+        <!-- Modal Détail -->
+        <div class="modal fade" id="modalDetail{{ cs.id }}" tabindex="-1" aria-labelledby="modalDetailLabel{{ cs.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalDetailLabel{{ cs.id }}">Détail de l'association</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Classe :</strong> {{ cs.classroom.name }}</p>
+                        <p><strong>Professeur :</strong> {% if cs.teacher %}{{ cs.teacher.user.get_full_name }}{% else %}-{% endif %}</p>
+                        <p><strong>Coefficient :</strong> {{ cs.coefficient }}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Éditer -->
+        <div class="modal fade" id="modalEdit{{ cs.id }}" tabindex="-1" aria-labelledby="modalEditLabel{{ cs.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalEditLabel{{ cs.id }}">Éditer l'association</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="{% url 'classsubject_edit' cs.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="coefficient{{ cs.id }}" class="form-label">Coefficient</label>
+                                <input type="number" step="0.1" class="form-control" id="coefficient{{ cs.id }}" name="coefficient" value="{{ cs.coefficient }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="teacher{{ cs.id }}" class="form-label">Professeur</label>
+                                <select class="form-control" id="teacher{{ cs.id }}" name="teacher">
+                                    <option value="">-- Aucun --</option>
+                                    {% for teacher in teachers %}
+                                        <option value="{{ teacher.id }}" {% if cs.teacher and cs.teacher.id == teacher.id %}selected{% endif %}>{{ teacher.user.get_full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Supprimer -->
+        <div class="modal fade" id="modalDelete{{ cs.id }}" tabindex="-1" aria-labelledby="modalDeleteLabel{{ cs.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalDeleteLabel{{ cs.id }}">Supprimer l'association</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Voulez-vous vraiment supprimer cette association ?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <form method="post" action="{% url 'classsubject_delete' cs.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                        </form>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <nav aria-label="Pagination">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?{% if filter_class %}class={{ filter_class }}&{% endif %}{% if search %}search={{ search }}&{% endif %}page={{ page_obj.previous_page_number }}">Précédent</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Précédent</span></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?{% if filter_class %}class={{ filter_class }}&{% endif %}{% if search %}search={{ search }}&{% endif %}page={{ page_obj.next_page_number }}">Suivant</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Suivant</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+        <!-- Bouton pour ajouter une association -->
+    <a href="{% url 'classsubject_add' subject.id %}" class="btn btn-success">Ajouter une association</a>
+        <!-- Modal Ajouter -->
+        <div class="modal fade" id="modalAddClassSubject" tabindex="-1" aria-labelledby="modalAddClassSubjectLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalAddClassSubjectLabel">Ajouter une association classe-matière</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="{% url 'classsubject_add' subject.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="classroom" class="form-label">Classe</label>
+                                <select class="form-control" id="classroom" name="classroom">
+                                    {% for classroom in classrooms %}
+                                        <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="teacher" class="form-label">Professeur</label>
+                                <select class="form-control" id="teacher" name="teacher">
+                                    <option value="">-- Aucun --</option>
+                                    {% for teacher in teachers %}
+                                        <option value="{{ teacher.id }}">{{ teacher.user.get_full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="coefficient" class="form-label">Coefficient</label>
+                                <input type="number" step="0.1" class="form-control" id="coefficient" name="coefficient">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Ajouter</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+</div>
+{% endblock %}

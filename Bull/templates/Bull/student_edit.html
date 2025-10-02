@@ -1,0 +1,14 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<h2>Éditer l'élève</h2>
+<form method="post" enctype="multipart/form-data" class="mb-4">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-primary">Enregistrer</button>
+</form>
+<a href="/students/" class="btn btn-secondary me-2">Retour à la liste</a>
+    <a href="{% url 'delete_student' student.id %}" class="btn btn-danger"
+       onclick="return confirm('Voulez-vous vraiment supprimer cet élève ?');">Supprimer</a>
+</div>
+{% endblock %}

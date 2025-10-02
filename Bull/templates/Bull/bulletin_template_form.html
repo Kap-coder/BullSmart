@@ -1,0 +1,21 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<div class="container py-4">
+  <h2 class="mb-4">{{ template|default_if_none:'Ajouter un canevas' }}</h2>
+  <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm mx-auto" style="max-width: 600px;">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-3">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+        {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-success w-100">Enregistrer</button>
+    <a href="{% url 'bulletin_template_list' %}" class="btn btn-secondary w-100 mt-2">Annuler</a>
+  </form>
+</div>
+</div>
+{% endblock %}

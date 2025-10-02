@@ -1,0 +1,21 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<h2>Classes associées à la matière : {{ subject.name }}</h2>
+<div class="row">
+  {% for card in class_cards %}
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ card.cs.classroom.name }} <span class="badge bg-info ms-2">Effectif: {{ card.stats.total }}</span></h5>
+            <p class="card-text">Prof : {% if card.cs.teacher %}{{ card.cs.teacher.user.get_full_name }}{% else %}Non attribué{% endif %}</p>
+    <p class="card-text">Coefficient : {{ card.cs.coefficient }}</p>
+    <a href="{% url 'classsubject_students' card.cs.id %}" class="btn btn-primary">Remplir les notes</a>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+<a href="{% url 'subject_card_list' %}" class="btn btn-secondary mt-3">Retour aux matières</a>
+</div>
+{% endblock %}

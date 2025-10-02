@@ -1,0 +1,47 @@
+{% extends 'Bull/base.html' %}
+{% block content %}
+<div data-ajax-content>
+<h2>Détail élève</h2>
+<div class="row mb-3">
+  <div class="col-md-3">
+    {% if student.photo %}
+      <img src="{{ student.photo.url }}" class="img-fluid rounded" alt="Photo élève">
+    {% else %}
+      <div class="bg-light text-center p-4 rounded">Aucune photo</div>
+    {% endif %}
+  </div>
+  <div class="col-md-9">
+    <ul class="list-group mb-3">
+      <li class="list-group-item"><strong>Matricule :</strong> {{ student.matricule }}</li>
+      <li class="list-group-item"><strong>Nom :</strong> {{ student.last_name }}</li>
+      <li class="list-group-item"><strong>Prénom :</strong> {{ student.first_name }}</li>
+      <li class="list-group-item"><strong>Classe :</strong> {{ student.classroom.name }}</li>
+      <li class="list-group-item"><strong>Genre :</strong> {{ student.gender }}</li>
+      <li class="list-group-item"><strong>Date de naissance :</strong> {{ student.birth_date }}</li>
+      <li class="list-group-item"><strong>Lieu de naissance :</strong> {{ student.birth_place }}</li>
+    </ul>
+    <a href="/students/{{ student.id }}/edit/" class="btn btn-warning me-2">Éditer</a>
+    <a href="/students/" class="btn btn-secondary">Retour à la liste</a>
+  </div>
+</div>
+
+<h4>Discipline</h4>
+<table class="table table-bordered">
+  <thead>
+    <tr><th>Trimestre</th><th>Absences</th><th>Retards</th><th>Sanctions</th></tr>
+  </thead>
+  <tbody>
+    {% for d in disciplines %}
+      <tr>
+        <td>{{ d.term.name }}</td>
+        <td>{{ d.absences }}</td>
+        <td>{{ d.lates }}</td>
+        <td>{{ d.sanctions_text|default:'-' }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">Aucune donnée de discipline.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
