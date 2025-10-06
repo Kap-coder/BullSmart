@@ -126,50 +126,55 @@
       const rows = document.querySelectorAll('.grade-row');
       let originalValues = [];
       function enterEdit(){
-        originalValues = [];
-        inputs.forEach((inp, idx)=>{ originalValues[idx]=inp.value; inp.classList.remove('d-none'); });
-        spans.forEach(s=>s.classList.add('d-none'));
-        editBtn.classList.add('d-none');
-        saveBtn.classList.remove('d-none');
-        cancelBtn.classList.remove('d-none');
+          originalValues = [];
+          inputs.forEach((inp, idx) => {
+              originalValues[idx] = inp.value;
+              inp.style.display = '';
+          });
+          spans.forEach(s => s.style.display = 'none');
+          editBtn.style.display = 'none';
+          saveBtn.style.display = '';
+          cancelBtn.style.display = '';
       }
       function exitEdit(cancel=false){
-        inputs.forEach((inp, idx)=>{ inp.classList.add('d-none'); if(cancel) inp.value = originalValues[idx]; });
-        spans.forEach((s, idx)=>{ s.classList.remove('d-none'); if(cancel) s.textContent = originalValues[idx]; else {
-          // update span to the input values
-          const val = inputs[idx].value; s.textContent = val; }
-        });
-        editBtn.classList.remove('d-none');
-        saveBtn.classList.add('d-none');
-        cancelBtn.classList.add('d-none');
-        // update row colouring
-        rows.forEach((r, idx)=>{
-          const v = parseFloat((inputs[idx] && !inputs[idx].classList.contains('d-none'))? inputs[idx].value : (spans[idx] ? spans[idx].textContent : '0')) || 0;
-          if(v === 0){ r.classList.add('table-danger'); } else { r.classList.remove('table-danger'); }
-        });
+          inputs.forEach((inp, idx) => {
+              inp.style.display = 'none';
+              if (cancel) inp.value = originalValues[idx];
+          });
+          spans.forEach((s, idx) => {
+              s.style.display = '';
+              if (cancel) s.textContent = originalValues[idx];
+              else s.textContent = inputs[idx].value;
+          });
+          editBtn.style.display = '';
+          saveBtn.style.display = 'none';
+          cancelBtn.style.display = 'none';
+          // Coloration des lignes
+          rows.forEach((r, idx) => {
+              const v = parseFloat(inputs[idx] ? inputs[idx].value : (spans[idx] ? spans[idx].textContent : '0')) || 0;
+              if (v === 0) r.classList.add('danger-row');
+              else r.classList.remove('danger-row');
+          });
       }
       if(editBtn){
         const allInputsOnPage = document.querySelectorAll('.value-input');
-        if(!allInputsOnPage || allInputsOnPage.length === 0){
-          // no editable inputs -> disable edit button
-          editBtn.disabled = true;
-          editBtn.title = 'Toutes les notes sont verrouillées - modification impossible';
-        }
-        editBtn.addEventListener('click', function(e){
-          const allInputs = document.querySelectorAll('.value-input');
-          if(!allInputs || allInputs.length === 0){
-            // show user-friendly alert
-            alert('Toutes les notes sont verrouillées — modification impossible.');
-            return;
+          if (!inputs.length) {
+              editBtn.disabled = true;
+              editBtn.title = 'Toutes les notes sont verrouillées - modification impossible';
           }
-          enterEdit();
-        });
+          editBtn.addEventListener('click', function(e) {
+              if (!inputs.length) {
+                  alert('Toutes les notes sont verrouillées — modification impossible.');
+                  return;
+              }
+              enterEdit();
+          });
       }
       cancelBtn && cancelBtn.addEventListener('click', ()=>exitEdit(true));
       // on form submit leave edit mode (values already posted)
       document.getElementById('grades-form').addEventListener('submit', function(){
         // ensure inputs visible so they are submitted
-        inputs.forEach(i=>i.classList.remove('d-none'));
+          inputs.forEach(i => i.style.display = '');
       });
       // auto open edit mode if server asked
       try{

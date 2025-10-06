@@ -7,10 +7,15 @@ class StudentForm(forms.ModelForm):
         model = Student
         fields = ['matricule', 'last_name', 'first_name', 'gender', 'birth_date', 'birth_place', 'photo', 'classroom', 'repeater']
         widgets = {
+            'matricule': forms.TextInput(attrs={'readonly': 'readonly'}),
             'birth_date': forms.DateInput(attrs={'type': 'date'}),
             'gender': forms.Select(choices=[('M', 'Masculin'), ('F', 'Féminin')]),
             'repeater': forms.CheckboxInput(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['matricule'].required = False
 
 class ImportStudentsForm(forms.Form):
     excel_file = forms.FileField(label='Fichier Excel (.xlsx)')
@@ -29,8 +34,7 @@ class TeacherForm(forms.ModelForm):
         model = Teacher
         fields = ['phone', 'is_active']
 
-# Formulaire pour lier une classe à un enseignant
-from Bull.models import ClassSubject, Classroom, Subject
+
 class TeacherClassSubjectForm(forms.Form):
     classroom = forms.ModelChoiceField(queryset=Classroom.objects.all(), label='Classe')
     subject = forms.ModelChoiceField(queryset=Subject.objects.none(), label='Matière')

@@ -91,7 +91,7 @@ class Classroom(models.Model):
 
 
 class Student(models.Model):
-    matricule = models.CharField(max_length=20, unique=True)
+    matricule = models.CharField(max_length=20, unique=True, blank=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     gender = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')])
@@ -103,6 +103,13 @@ class Student(models.Model):
 
     def __str__(self):
         return f"{self.matricule} - {self.first_name} {self.last_name}"
+
+    def save(self, *args, **kwargs):
+        creating = self.pk is None
+        super().save(*args, **kwargs)
+        if creating and not self.matricule:
+            self.matricule = f"{timezone.now().year}SME{str(self.id).zfill(3)}"
+            super().save(update_fields=["matricule"])
 
 
 
