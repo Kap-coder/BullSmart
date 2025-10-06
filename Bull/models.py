@@ -1,5 +1,6 @@
-
-
+# Signal pour lier automatiquement l'élève aux matières de sa classe
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
@@ -104,9 +105,6 @@ class Student(models.Model):
         return f"{self.matricule} - {self.first_name} {self.last_name}"
 
 
-# Signal pour lier automatiquement l'élève aux matières de sa classe
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
 
 @receiver(pre_save, sender=Student)
 def check_classroom_change(sender, instance, **kwargs):
